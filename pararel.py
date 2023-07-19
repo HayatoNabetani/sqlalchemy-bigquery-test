@@ -1,4 +1,6 @@
 import time
+from multiprocessing import Pool
+import multiprocessing as multi
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -9,7 +11,6 @@ from sqlalchemy.dialects.mysql import TIMESTAMP as Timestamp
 
 
 Base = declarative_base()
-# /Users/hnabetani/Desktop/factbase/Python/bigquery-sqlachemy/main.py:8: MovedIn20Warning: Deprecated API features detected! These feature(s) are not compatible with SQLAlchemy 2.0. To prevent incompatible upgrades prior to updating applications, ensure requirements files are pinned to "sqlalchemy<2.0". Set environment variable SQLALCHEMY_WARN_20=1 to show all deprecation warnings.  Set environment variable SQLALCHEMY_SILENCE_UBER_WARNING=1 to silence this message. (Background on SQLAlchemy 2.0 at: https://sqlalche.me/e/b8d9)
 
 
 class BigQueryApp(Base):
@@ -57,7 +58,7 @@ def get_app_query(search_word):
 
 if __name__ == '__main__':
     start_time = time.time()
-
+    # 10個
     search_words = [
         "tiktok",
         "facebook",
@@ -70,12 +71,13 @@ if __name__ == '__main__':
         "instagram",
         "facebook",
     ]
-    for search_word in search_words:
-        result = get_app_query(search_word)
+    p = Pool(multi.cpu_count())
+    results = p.map(get_app_query, search_words)
+    for result in results:
         print(result)
-
     db.close()
     end_time = time.time()
     print(f'かかった時間:{end_time - start_time}秒')
-    # かかった時間:17.77370810508728秒 us-centeral
-    # かかった時間:12.446184873580933秒 japan
+
+    # かかった時間:4.706763744354248秒 us-centeral
+    # かかった時間:3.2460811138153076秒 japan
