@@ -13,7 +13,8 @@ Base = declarative_base()
 
 
 class BigQueryApp(Base):
-    __tablename__ = "kashika-dpro-dev-378004.dpro_test.apps"
+    # __tablename__ = "kashika-dpro-dev-378004.dpro_test.apps"
+    __tablename__ = "apps"
     __table_args__ = {"comment": "媒体"}
     id = Column(Integer, autoincrement=True, primary_key=True, comment="媒体ID")
     name = Column("name", String(length=20), nullable=False, unique=True, comment="媒体名")
@@ -35,7 +36,7 @@ class BigQueryApp(Base):
 
 # provide the path to a service account JSON file
 bigquery_engine = create_engine(
-    'bigquery://',
+    'bigquery://kashika-dpro-dev-378004/dpro_test',
     credentials_path='kashika-dpro-dev-0004.json'
 )
 
@@ -49,11 +50,14 @@ SessionLocal = sessionmaker(
 db = SessionLocal()
 
 # 直接SQLを実行
-result = db.query(BigQueryApp).all()
 
-# 結果を表示
-for row in result:
-    print(row.name)
+for i in range(5):
+    print(i)
+    result = db.query(BigQueryApp).all()
+
+    # 結果を表示
+    for row in result:
+        print(row.name)
 
 
 db.close()
