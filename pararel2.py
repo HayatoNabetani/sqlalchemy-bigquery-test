@@ -48,15 +48,10 @@ SessionLocal = sessionmaker(
 )
 
 
-db = SessionLocal()
-
-
-def get_app_query(word):
-    s_time = time.time()
+def get_app_query(search_dict):
     db = SessionLocal()
+    word = search_dict['word']
     result = db.query(BigQueryApp).filter(BigQueryApp.name == word).all()
-    e_time = time.time()
-    print(f'?????? かかった時間:{e_time - s_time}秒 ???????')
     return result
 
 
@@ -76,12 +71,16 @@ if __name__ == '__main__':
         "facebook",
     ]
     p = Pool(multi.cpu_count())
-    results = p.map(get_app_query, search_words)
+
+    req_dict_list = []
+    for word in search_words:
+        req_dict_list.append({
+            'word': word,
+        })
+
+    results = p.map(get_app_query, req_dict_list)
     for result in results:
         print(result)
-    db.close()
     end_time = time.time()
     print(f'かかった時間:{end_time - start_time}秒')
-
-    # かかった時間:4.706763744354248秒 us-centeral
     # かかった時間:3.2460811138153076秒 japan

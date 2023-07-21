@@ -1,6 +1,5 @@
+import asyncio
 import time
-from multiprocessing import Pool
-import multiprocessing as multi
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -48,10 +47,7 @@ SessionLocal = sessionmaker(
 )
 
 
-db = SessionLocal()
-
-
-def get_app_query(word):
+async def get_app_query(word):
     s_time = time.time()
     db = SessionLocal()
     result = db.query(BigQueryApp).filter(BigQueryApp.name == word).all()
@@ -60,8 +56,8 @@ def get_app_query(word):
     return result
 
 
-if __name__ == '__main__':
-    start_time = time.time()
+async def main():
+    s_time = time.time()
     # 10個
     search_words = [
         "tiktok",
@@ -75,13 +71,16 @@ if __name__ == '__main__':
         "instagram",
         "facebook",
     ]
-    p = Pool(multi.cpu_count())
-    results = p.map(get_app_query, search_words)
-    for result in results:
-        print(result)
-    db.close()
-    end_time = time.time()
-    print(f'かかった時間:{end_time - start_time}秒')
 
-    # かかった時間:4.706763744354248秒 us-centeral
-    # かかった時間:3.2460811138153076秒 japan
+    s_time = time.time()
+    tasks = [get_app_query(d) for d in search_words]
+    cost_app_results_list = await asyncio.gather(*tasks)
+    for result in cost_app_results_list:
+        print(result)
+    e_time = time.time()
+    print(f"TOTAL: >>>>>{e_time - s_time}秒>>>>>")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+    # TOTAL: >>>>>8.4551100730896秒>>>>>

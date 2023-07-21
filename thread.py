@@ -1,6 +1,6 @@
-import time
-from multiprocessing import Pool
+import concurrent.futures
 import multiprocessing as multi
+import time
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -48,9 +48,6 @@ SessionLocal = sessionmaker(
 )
 
 
-db = SessionLocal()
-
-
 def get_app_query(word):
     s_time = time.time()
     db = SessionLocal()
@@ -61,7 +58,7 @@ def get_app_query(word):
 
 
 if __name__ == '__main__':
-    start_time = time.time()
+    s_time = time.time()
     # 10個
     search_words = [
         "tiktok",
@@ -75,13 +72,19 @@ if __name__ == '__main__':
         "instagram",
         "facebook",
     ]
-    p = Pool(multi.cpu_count())
-    results = p.map(get_app_query, search_words)
-    for result in results:
+    # 並行処理
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=multi.cpu_count()) as executor:
+    #     cost_app_results_list = list(
+    #         executor.map(get_app_query, search_words)
+    #     )
+    # かかった時間:2.3396999835968018秒 japan
+    # 並列処理
+    with concurrent.futures.ProcessPoolExecutor(max_workers=multi.cpu_count()) as executor:
+        cost_app_results_list = list(
+            executor.map(get_app_query, search_words)
+        )
+    # かかった時間:2.2059319019317627秒
+    e_time = time.time()
+    for result in cost_app_results_list:
         print(result)
-    db.close()
-    end_time = time.time()
-    print(f'かかった時間:{end_time - start_time}秒')
-
-    # かかった時間:4.706763744354248秒 us-centeral
-    # かかった時間:3.2460811138153076秒 japan
+    print(f'かかった時間:{e_time - s_time}秒')
