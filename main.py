@@ -36,7 +36,7 @@ class BigQueryApp(Base):
 
 # provide the path to a service account JSON file
 bigquery_engine = create_engine(
-    'bigquery://kashika-dpro-dev-378004/dpro_test4',
+    'bigquery://kashika-dpro-dev-378004/dpro_development',
     credentials_path='kashika-dpro-dev-0004.json'
 )
 

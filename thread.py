@@ -37,7 +37,7 @@ class BigQueryApp(Base):
 
 # provide the path to a service account JSON file
 bigquery_engine = create_engine(
-    'bigquery://kashika-dpro-dev-378004/dpro_test4',
+    'bigquery://kashika-dpro-dev-378004/dpro_development',
     credentials_path='kashika-dpro-dev-0004.json'
 )
 
@@ -73,17 +73,11 @@ if __name__ == '__main__':
         "facebook",
     ]
     # 並行処理
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=multi.cpu_count()) as executor:
-    #     cost_app_results_list = list(
-    #         executor.map(get_app_query, search_words)
-    #     )
-    # かかった時間:2.3396999835968018秒 japan
-    # 並列処理
-    with concurrent.futures.ProcessPoolExecutor(max_workers=multi.cpu_count()) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=multi.cpu_count()) as executor:
         cost_app_results_list = list(
             executor.map(get_app_query, search_words)
         )
-    # かかった時間:2.2059319019317627秒
+    # かかった時間:2.3396999835968018秒 japan
     e_time = time.time()
     for result in cost_app_results_list:
         print(result)

@@ -1,6 +1,6 @@
-import time
-from multiprocessing import Pool
+import concurrent.futures
 import multiprocessing as multi
+import time
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -37,7 +37,7 @@ class BigQueryApp(Base):
 
 # provide the path to a service account JSON file
 bigquery_engine = create_engine(
-    'bigquery://kashika-dpro-dev-378004/dpro_test4',
+    'bigquery://kashika-dpro-dev-378004/dpro_development',
     credentials_path='kashika-dpro-dev-0004.json'
 )
 
@@ -48,15 +48,17 @@ SessionLocal = sessionmaker(
 )
 
 
-def get_app_query(search_dict):
+def get_app_query(word):
+    s_time = time.time()
     db = SessionLocal()
-    word = search_dict['word']
     result = db.query(BigQueryApp).filter(BigQueryApp.name == word).all()
+    e_time = time.time()
+    print(f'?????? かかった時間:{e_time - s_time}秒 ???????')
     return result
 
 
 if __name__ == '__main__':
-    start_time = time.time()
+    s_time = time.time()
     # 10個
     search_words = [
         "tiktok",
@@ -70,17 +72,19 @@ if __name__ == '__main__':
         "instagram",
         "facebook",
     ]
-    p = Pool(multi.cpu_count())
-
-    req_dict_list = []
-    for word in search_words:
-        req_dict_list.append({
-            'word': word,
-        })
-
-    results = p.map(get_app_query, req_dict_list)
-    for result in results:
+    # 並行処理
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=multi.cpu_count()) as executor:
+    #     cost_app_results_list = list(
+    #         executor.map(get_app_query, search_words)
+    #     )
+    # かかった時間:2.3396999835968018秒 japan
+    # 並列処理
+    with concurrent.futures.ProcessPoolExecutor(max_workers=multi.cpu_count()) as executor:
+        cost_app_results_list = list(
+            executor.map(get_app_query, search_words)
+        )
+    # かかった時間:2.2059319019317627秒
+    e_time = time.time()
+    for result in cost_app_results_list:
         print(result)
-    end_time = time.time()
-    print(f'かかった時間:{end_time - start_time}秒')
-    # かかった時間:3.2460811138153076秒 japan
+    print(f'かかった時間:{e_time - s_time}秒')
